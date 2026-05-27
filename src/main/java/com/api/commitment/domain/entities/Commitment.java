@@ -74,6 +74,11 @@ public class Commitment {
     @Column(name = "is_archived", nullable = false)
     private Boolean isArchived = false;
 
+    @Setter
+    @Builder.Default
+    @Column(name = "reminder_sent", nullable = false)
+    private Boolean reminderSent = false;
+
     @ManyToMany
     @JoinTable(name = "commitments_participants", joinColumns = @JoinColumn(name = "commitment_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
     @Builder.Default
@@ -89,5 +94,9 @@ public class Commitment {
 
     public void archive() {
         this.isArchived = true;
+    }
+
+    public void unarchive() {
+        this.isArchived = false;
     }
 }

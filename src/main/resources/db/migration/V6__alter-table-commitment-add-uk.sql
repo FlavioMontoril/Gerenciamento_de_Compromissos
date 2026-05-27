@@ -1,0 +1,1 @@
+ALTER TABLE commitments ADD CONSTRAINT uk_owner_appointment UNIQUE (owner_id, appointment_date);

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.api.commitment.domain.dtos.CommitmentRequestDTO;
@@ -37,25 +38,33 @@ public class CommitmentController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CommitmentResponseDTO>> listAll() {
-        return ResponseEntity.ok(commitmentService.findAll());
+    public ResponseEntity<List<CommitmentResponseDTO>> listAll(
+            @AuthenticationPrincipal User user,
+            @RequestParam(required = false) Boolean archived) {
+        return ResponseEntity.ok(commitmentService.findAllByUser(user, archived));
     }
 
     @PatchMapping("/{id}/complete")
-    public ResponseEntity<Void> complete(@PathVariable UUID id) {
-        commitmentService.complete(id);
+    public ResponseEntity<Void> complete(@PathVariable UUID id, @AuthenticationPrincipal User user) {
+        commitmentService.complete(id, user);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/cancel")
-    public ResponseEntity<Void> cancel(@PathVariable UUID id) {
-        commitmentService.cancel(id);
+    public ResponseEntity<Void> cancel(@PathVariable UUID id, @AuthenticationPrincipal User user) {
+        commitmentService.cancel(id, user);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/archive")
-    public ResponseEntity<Void> archive(@PathVariable UUID id) {
-        commitmentService.archive(id);
+    public ResponseEntity<Void> archive(@PathVariable UUID id, @AuthenticationPrincipal User user) {
+        commitmentService.archive(id, user);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/unarchive")
+    public ResponseEntity<Void> unarchive(@PathVariable UUID id, @AuthenticationPrincipal User user) {
+        commitmentService.unarchive(id, user);
         return ResponseEntity.noContent().build();
     }
 }

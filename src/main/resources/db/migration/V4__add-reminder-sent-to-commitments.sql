@@ -1,0 +1,1 @@
+ALTER TABLE commitments ADD COLUMN reminder_sent BOOLEAN DEFAULT FALSE NOT NULL;
