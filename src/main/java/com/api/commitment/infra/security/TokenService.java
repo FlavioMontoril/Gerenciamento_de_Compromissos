@@ -25,7 +25,7 @@ public class TokenService {
             String token = JWT.create()
                     .withIssuer("commitment-api")
                     .withSubject(user.getEmail())
-                    .withExpiresAt(genExpirationDate())
+                    .withExpiresAt(genExpirationDate(2)) // 2 horas de duração
                     .sign(algorithm);
             return token;
         } catch (JWTCreationException exception) {
@@ -46,7 +46,20 @@ public class TokenService {
         }
     }
 
-    private Instant genExpirationDate() {
-        return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
+    public String generateRefreshToken(User user) {
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(secret);
+            return JWT.create()
+                    .withIssuer("commitment-api")
+                    .withSubject(user.getEmail())
+                    .withExpiresAt(genExpirationDate(24)) // 24 horas de duração
+                    .sign(algorithm);
+        } catch (JWTCreationException exception) {
+            throw new RuntimeException("Erro ao gerar refresh token", exception);
+        }
+    }
+
+    private Instant genExpirationDate(int hours) {
+        return LocalDateTime.now().plusHours(hours).toInstant(ZoneOffset.of("-03:00"));
     }
 }

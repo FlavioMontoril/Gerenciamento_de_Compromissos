@@ -55,6 +55,10 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;
 
+    @Setter
+    @Column(name = "fcm_token")
+    private String fcmToken;
+
     @Setter(AccessLevel.NONE)
     @CreationTimestamp
     @Column(name = "created_at", updatable = false, nullable = false)

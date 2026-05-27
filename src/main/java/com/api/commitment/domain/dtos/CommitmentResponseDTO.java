@@ -15,6 +15,7 @@ public record CommitmentResponseDTO(
         LocalDateTime reminderDate,
         CommitmentStatus status,
         Boolean isArchived,
+        Boolean reminderSent,
         String ownerName,
         Set<String> participantsNames) {
 
@@ -26,6 +27,7 @@ public record CommitmentResponseDTO(
                 commitment.getReminderDate(),
                 commitment.getStatus(),
                 commitment.getIsArchived(),
+                commitment.getReminderSent(),
                 commitment.getOwner().getName(),
                 commitment.getParticipants().stream().map(p -> p.getName()).collect(Collectors.toSet()));
     }

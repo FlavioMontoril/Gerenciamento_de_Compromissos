@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.api.commitment.domain.dtos.AuthenticationDTO;
 import com.api.commitment.domain.dtos.LoginResponseDTO;
-import com.api.commitment.domain.dtos.RegisterDTO;
+import com.api.commitment.domain.dtos.TokenRefreshRequestDTO;
 import com.api.commitment.domain.entities.User;
 import com.api.commitment.domain.repositories.UserRepository;
 import com.api.commitment.infra.security.TokenService;
@@ -27,38 +26,39 @@ public class AuthenticationController {
     private AuthenticationManager authenticationManager;
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
     private TokenService tokenService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody @Valid AuthenticationDTO data) {
+        System.out.println("AUTH -- " + data);
         var usernamePassword = new UsernamePasswordAuthenticationToken(data.email(), data.password());
         var auth = this.authenticationManager.authenticate(usernamePassword);
 
-        var token = tokenService.generateToken((User) auth.getPrincipal());
+        var user = (User) auth.getPrincipal();
+        var token = tokenService.generateToken(user);
+        var refreshToken = tokenService.generateRefreshToken(user);
 
-        return ResponseEntity.ok(new LoginResponseDTO(token));
+        return ResponseEntity.ok(new LoginResponseDTO(token, refreshToken, user.getName(), user.getEmail()));
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody @Valid RegisterDTO data) {
-        if (this.userRepository.findByEmail(data.email()) != null)
-            return ResponseEntity.badRequest().build();
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(@RequestBody @Valid TokenRefreshRequestDTO data) {
+        var email = tokenService.validateToken(data.refreshToken());
+        if (email.isEmpty()) {
+            return ResponseEntity.status(401).body("Refresh token inválido ou expirado");
+        }
 
-        String encryptedPassword = passwordEncoder.encode(data.password());
-        User newUser = User.builder()
-                .name(data.name())
-                .email(data.email())
-                .password(encryptedPassword)
-                .build();
+        var user = (User) userRepository.findByEmail(email);
+        if (user == null) {
+            return ResponseEntity.status(401).body("Usuário não encontrado");
+        }
 
-        this.userRepository.save(newUser);
+        var token = tokenService.generateToken(user);
+        var refreshToken = tokenService.generateRefreshToken(user);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(new LoginResponseDTO(token, refreshToken, user.getName(), user.getEmail()));
     }
 }
