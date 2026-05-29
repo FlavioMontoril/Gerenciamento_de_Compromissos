@@ -14,11 +14,17 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# Cria o diretório de uploads dentro do container
-RUN mkdir -p /app/uploads && chmod 777 /app/uploads
+# Cria um grupo e um usuário não-root para segurança em produção
+RUN addgroup -S spring && adduser -S spring -G spring
 
-# Copia o JAR gerado no estágio anterior
-COPY --from=build /app/target/*.jar app.jar
+# Define o dono da pasta da aplicação para o usuário não-root
+RUN chown -R spring:spring /app
+
+# Copia o JAR gerado no estágio anterior com a permissão correta
+COPY --from=build --chown=spring:spring /app/target/*.jar app.jar
+
+# Define o usuário que executará a aplicação
+USER spring
 
 # Expõe a porta padrão do Spring Boot
 EXPOSE 8080

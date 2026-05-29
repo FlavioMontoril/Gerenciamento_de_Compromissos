@@ -1,0 +1,9 @@
+# Usamos a imagem oficial como base
+FROM mysql:8.0
+
+# Copiamos o seu dump para a pasta de inicialização automática do MySQL
+# O MySQL executa qualquer .sql nesta pasta na primeira vez que o container sobe
+COPY init.sql /docker-event-initdb.d/
+
+# Opcional: Você pode fixar o fuso horário para garantir consistência
+ENV TZ=America/Fortaleza
