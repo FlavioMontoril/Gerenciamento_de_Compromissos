@@ -1,13 +1,14 @@
--- Renomeia message para content
-ALTER TABLE notifications CHANGE COLUMN message content TEXT NOT NULL;
+-- Como estamos em desenvolvimento e a estrutura mudou drasticamente,
+-- vamos remover a tabela antiga e recriar para evitar erros de Foreign Key inexistente.
 
--- Remove FK antiga (o nome pode variar, mas geralmente é notifications_ibfk_1 ou baseado no nome do campo)
--- Para garantir compatibilidade com o que foi criado pelo JPA/Flyway anteriormente:
-ALTER TABLE notifications DROP FOREIGN KEY fk_notifications_user;
+DROP TABLE IF EXISTS notifications;
 
--- Remove campos que agora são individuais
-ALTER TABLE notifications DROP COLUMN user_id;
-ALTER TABLE notifications DROP COLUMN is_read;
+-- Recria a tabela de notificações (Conteúdo compartilhado)
+CREATE TABLE notifications (
+    id CHAR(36) PRIMARY KEY,
+    content TEXT NOT NULL,
+    created_at DATETIME NOT NULL
+);
 
 -- Cria tabela de vínculo (Muitos-para-Muitos com estado)
 CREATE TABLE user_notifications (

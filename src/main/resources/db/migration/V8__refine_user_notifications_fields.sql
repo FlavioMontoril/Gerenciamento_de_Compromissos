@@ -1,6 +1,3 @@
--- Remove title de notifications
-ALTER TABLE notifications DROP COLUMN title;
-
 -- Renomeia user_id para received_by_id em user_notifications
 ALTER TABLE user_notifications RENAME COLUMN user_id TO received_by_id;
 
