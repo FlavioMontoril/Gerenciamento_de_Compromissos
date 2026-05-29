@@ -27,6 +27,9 @@ public class CommitmentService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private NotificationService notificationService;
+
     @Transactional
     public CommitmentResponseDTO create(CommitmentRequestDTO data, User owner) {
 
@@ -52,7 +55,19 @@ public class CommitmentService {
                 .isArchived(false)
                 .build();
 
-        return new CommitmentResponseDTO(commitmentRepository.save(commitment));
+        Commitment savedCommitment = commitmentRepository.save(commitment);
+
+        // Notifica os participantes que foram incluídos
+        if (!participants.isEmpty()) {
+            String content = String.format("%s convidou você para o compromisso: %s", 
+                    owner.getName(), commitment.getDescription());
+            
+            for (User participant : participants) {
+                notificationService.createAndSend(owner, participant, content);
+            }
+        }
+
+        return new CommitmentResponseDTO(savedCommitment);
     }
 
     @Transactional
@@ -72,6 +87,11 @@ public class CommitmentService {
 
         commitment.complete();
         commitmentRepository.save(commitment);
+
+        // Notifica os outros participantes sobre a conclusão
+        String content = String.format("O compromisso '%s' foi marcado como concluído por %s", 
+                commitment.getDescription(), user.getName());
+        notificationService.notifyCommitmentEvent(commitment, content, user);
     }
 
     @Transactional
@@ -90,6 +110,11 @@ public class CommitmentService {
 
         commitment.cancel();
         commitmentRepository.save(commitment);
+
+        // Notifica os outros participantes sobre o cancelamento
+        String content = String.format("O compromisso '%s' foi cancelado por %s", 
+                commitment.getDescription(), user.getName());
+        notificationService.notifyCommitmentEvent(commitment, content, user);
     }
 
     @Transactional

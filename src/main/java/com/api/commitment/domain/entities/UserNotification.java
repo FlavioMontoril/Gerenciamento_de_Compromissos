@@ -12,6 +12,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,13 +22,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "notifications")
+@Table(name = "user_notifications")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Notification {
+public class UserNotification {
 
     @Id
     @JdbcTypeCode(SqlTypes.CHAR)
@@ -34,8 +36,21 @@ public class Notification {
     @Column(updatable = false, nullable = false)
     private UUID id;
 
-    @Column(nullable = false)
-    private String content;
+    @ManyToOne
+    @JoinColumn(name = "received_by_id", nullable = false)
+    private User receivedBy;
+
+    @ManyToOne
+    @JoinColumn(name = "triggered_by_id", nullable = true)
+    private User triggeredBy;
+
+    @ManyToOne
+    @JoinColumn(name = "notification_id", nullable = false)
+    private Notification notification;
+
+    @Builder.Default
+    @Column(name = "is_read", nullable = false)
+    private Boolean isRead = false;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false, nullable = false)
