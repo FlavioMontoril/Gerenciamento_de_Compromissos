@@ -13,35 +13,35 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.api.commitment.domain.dtos.NotificationResponseDTO;
-import com.api.commitment.domain.entities.Notification;
 import com.api.commitment.domain.entities.User;
-import com.api.commitment.domain.repositories.NotificationRepository;
+import com.api.commitment.domain.entities.UserNotification;
+import com.api.commitment.domain.repositories.UserNotificationRepository;
 
 @RestController
 @RequestMapping("api/notifications")
 public class NotificationController {
 
     @Autowired
-    private NotificationRepository notificationRepository;
+    private UserNotificationRepository userNotificationRepository;
 
     @GetMapping
     public ResponseEntity<List<NotificationResponseDTO>> listAll(@AuthenticationPrincipal User user) {
-        var notifications = notificationRepository.findByUserOrderByCreatedAtDesc(user);
-        var response = notifications.stream().map(NotificationResponseDTO::new).toList();
+        var userNotifications = userNotificationRepository.findByReceivedByOrderByCreatedAtDesc(user);
+        var response = userNotifications.stream().map(NotificationResponseDTO::new).toList();
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{id}/read")
     public ResponseEntity<Void> markAsRead(@PathVariable UUID id, @AuthenticationPrincipal User user) {
-        Notification notification = notificationRepository.findById(id)
+        UserNotification userNotification = userNotificationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Notificação não encontrada"));
 
-        if (!notification.getUser().getId().equals(user.getId())) {
+        if (!userNotification.getReceivedBy().getId().equals(user.getId())) {
             throw new RuntimeException("Você não tem permissão para alterar esta notificação.");
         }
 
-        notification.setIsRead(true);
-        notificationRepository.save(notification);
+        userNotification.setIsRead(true);
+        userNotificationRepository.save(userNotification);
         return ResponseEntity.noContent().build();
     }
 }
